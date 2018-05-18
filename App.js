@@ -25,8 +25,12 @@ export default class App extends Component<Props> {
   render() {
     var message = 'hello there 2';
     return (
-      <Login />
+      <Login onLogin={this.onLogin} />
     );
+  }
+
+  onLogin() {
+    console.log('successfully logged in, can show different view');
   }
 }
 
