@@ -9,9 +9,13 @@ import {
   Platform,
   StyleSheet,
   Text,
-  View
+  View,
+  ActivityIndicator,
+  AsyncStorage
 } from 'react-native';
 import Login from './Login';
+import AuthService from './AuthService';
+import AppContainer from './AppContainer';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -22,15 +26,48 @@ const instructions = Platform.select({
 
 type Props = {};
 export default class App extends Component<Props> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoggedIn: false,
+      checkingAuth: true
+    };
+  }
+
+  componentDidMount() {
+    AuthService.getAuthInfo((err, authInfo) => {
+      this.setState({
+        checkingAuth: false,
+        isLoggedIn: authInfo != null
+      });
+    }, AsyncStorage);
+  }
+
   render() {
-    var message = 'hello there 2';
-    return (
-      <Login onLogin={this.onLogin} />
-    );
+    if (this.state.checkingAuth) {
+      return (
+        <View style={styles.container}>
+          <ActivityIndicator
+            animating={true}
+            size="large"
+            style={styles.loader} />
+        </View>
+      )
+    }
+
+    if (this.state.isLoggedIn) {
+      return (
+        <AppContainer />
+      );
+    } else {
+      return (
+        <Login onLogin={this.onLogin.bind(this)} />
+      );
+    }
   }
 
   onLogin() {
-    console.log('successfully logged in, can show different view');
+    this.setState({isLoggedIn: true});
   }
 }
 

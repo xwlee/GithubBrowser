@@ -1,7 +1,41 @@
 import buffer from 'buffer';
+import _ from 'lodash';
+
+const authKey = 'auth';
+const userKey = 'user';
 
 export default new class AuthService {
-  login(creds, cb) {
+  getAuthInfo(cb, AsyncStorage) {
+    AsyncStorage.multiGet([
+      authKey,
+      userKey
+    ], (err, val) => {
+      if (err) {
+        return cb(err);
+      }
+
+      if (!val) {
+        return cb();
+      }
+
+      var zippedObj = _.fromPairs(val);
+
+      if (!zippedObj[authKey]) {
+        return cb();
+      }
+
+      var authInfo = {
+        header: {
+          Authorization: 'Basic ' + zippedObj[authKey]
+        },
+        user: JSON.parse(zippedObj[userKey])
+      };
+
+      return cb(null, authInfo);
+    })
+  }
+
+  login(creds, cb, AsyncStorage) {
     var b = new buffer.Buffer(creds.username + ':' + creds.password);
     var encodedAuth = b.toString('base64');
 
@@ -24,7 +58,16 @@ export default new class AuthService {
       return response.json();
     })
     .then((results) => {
-      return cb({success: true});
+      AsyncStorage.multiSet([
+        [authKey, encodedAuth],
+        [userKey, JSON.stringify(results)]
+      ], (err) => {
+        if (err) {
+          throw err;
+        }
+
+        return cb({success: true});
+      });
     }).
     catch((err) => {
       return cb(err);

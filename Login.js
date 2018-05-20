@@ -8,10 +8,12 @@ import {
   TextInput,
   TouchableHighlight,
   ActivityIndicator,
-  StyleSheet
+  StyleSheet,
+  AsyncStorage
 } from 'react-native';
 import AuthService from './AuthService';
 
+type Props = {};
 export default class Login extends Component<Props> {
   constructor(props) {
     super(props);
@@ -77,7 +79,7 @@ export default class Login extends Component<Props> {
       if (results.success && this.props.onLogin) {
         this.props.onLogin();
       }
-    });
+    }, AsyncStorage);
   }
 }
 
